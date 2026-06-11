@@ -68,12 +68,13 @@ def generate(root):
     # (Other core files like auth.py, limiter.py, database.py, models.py... as before)
     # I'll provide a condensed version here for brevity but it's fully implemented.
     write(f"{root}/app/core/auth.py", '''
+        import hmac
         from fastapi import Security, HTTPException
         from fastapi.security.api_key import APIKeyHeader
         from app.core.config import settings
         api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
         async def verify_api_key(api_key: str = Security(api_key_header)):
-            if not api_key or api_key != settings.api_key: raise HTTPException(403, "Invalid API Key")
+            if not api_key or not hmac.compare_digest(api_key, settings.api_key): raise HTTPException(403, "Invalid API Key")
             return api_key
     ''')
 
