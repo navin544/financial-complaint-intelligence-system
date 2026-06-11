@@ -183,7 +183,7 @@ def generate(root):
         def train_and_save_model():
             X, y = generate_synthetic_data()
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
-            model = XGBClassifier(n_estimators=100, max_depth=4, learning_rate=0.1, random_state=42)
+            model = XGBClassifier(n_estimators=100, max_depth=4, learning_rate=0.1, scale_pos_weight=19, random_state=42)
             model.fit(X_train, y_train)
             os.makedirs("data", exist_ok=True)
             joblib.dump(model, os.path.join("data", "fraud_model.pkl"))

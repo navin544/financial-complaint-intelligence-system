@@ -6,6 +6,7 @@ import com.fcis.app.data.model.SummaryResponse
 import com.fcis.app.data.repository.ComplaintRepository
 import com.fcis.app.data.repository.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,9 +23,11 @@ class SummarizeViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SummarizeUiState())
     val uiState: StateFlow<SummarizeUiState> = _uiState.asStateFlow()
+    private var job: Job? = null
 
     fun summarize(text: String) {
-        viewModelScope.launch {
+        job?.cancel()
+        job = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null, result = null) }
             when (val r = repo.summarize(text)) {
                 is Result.Success -> _uiState.update { it.copy(isLoading = false, result = r.data) }
@@ -33,5 +36,8 @@ class SummarizeViewModel @Inject constructor(
             }
         }
     }
-    fun reset() = _uiState.update { SummarizeUiState() }
+    fun reset() {
+        job?.cancel()
+        _uiState.update { SummarizeUiState() }
+    }
 }

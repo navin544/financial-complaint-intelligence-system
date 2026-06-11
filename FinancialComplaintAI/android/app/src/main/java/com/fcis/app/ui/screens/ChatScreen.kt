@@ -113,11 +113,11 @@ fun ChatBubble(msg: UiChatMessage) {
                         bottomStart = if (isUser) 16.dp else 4.dp,
                         bottomEnd = if (isUser) 4.dp else 16.dp,
                     ))
-                    .background(if (isUser) Blue else Color(0xFFECEFF1))
+                    .background(if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                     .padding(horizontal = 14.dp, vertical = 10.dp)
                     .widthIn(max = 260.dp)
             ) {
-                Text(msg.content, color = if (isUser) Color.White else Navy, fontSize = 14.sp)
+                Text(msg.content, color = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
             }
             if (msg.sources.isNotEmpty()) {
                 Text("Sources: ${msg.sources.take(3).joinToString(", ")}",

@@ -75,8 +75,8 @@ fun FraudDetectionScreen(vm: FraudViewModel = hiltViewModel()) {
         }
 
         state.error?.let {
-            Card(colors = CardDefaults.cardColors(containerColor = Error.copy(0.1f))) {
-                Text(it, color = Error, modifier = Modifier.padding(12.dp), fontSize = 13.sp)
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
+                Text(it, color = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.padding(12.dp), fontSize = 13.sp)
             }
         }
 
@@ -85,7 +85,7 @@ fun FraudDetectionScreen(vm: FraudViewModel = hiltViewModel()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Risk Level", fontSize = 12.sp, color = Color.Gray)
-                        Text(r.risk_level, fontWeight = FontWeight.Bold, color = if (r.is_fraud) Error else Color(0xFF4CAF50))
+                        Text(r.risk_level, fontWeight = FontWeight.Bold, color = if (r.is_fraud) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
                     }
                     ResultRow("Probability", "${"%.1f".format(r.fraud_probability * 100)}%")
                     ResultRow("Recommendation", r.recommendation)

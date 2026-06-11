@@ -30,7 +30,7 @@ class HealthViewModel @Inject constructor(
 
     private fun startPolling() {
         viewModelScope.launch {
-            while (true) {
+            while (isActive) {
                 checkHealth()
                 delay(30000) // Poll every 30 seconds
             }

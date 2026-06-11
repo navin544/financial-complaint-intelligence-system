@@ -25,6 +25,12 @@ def generate(root):
                 buildConfigField("String", "BASE_URL", "\\"http://10.0.2.2:8000/\\"")
                 buildConfigField("String", "API_KEY", "System.getenv(\\"FCIS_API_KEY\\") ?: \\"MISSING_KEY\\"")
             }
+            buildTypes {
+                release { 
+                    isMinifyEnabled = true 
+                    proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+                }
+            }
             buildFeatures { compose = true; buildConfig = true }
         }
         dependencies {

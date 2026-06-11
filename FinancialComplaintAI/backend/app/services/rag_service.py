@@ -145,8 +145,14 @@ class RAGService:
         )
         
         loop = asyncio.get_event_loop()
-        raw = await loop.run_in_executor(None, self.llm.invoke, prompt)
-        
+        try:
+            raw = await asyncio.wait_for(
+                loop.run_in_executor(None, self.llm.invoke, prompt), 
+                timeout=60.0
+            )
+        except asyncio.TimeoutError:
+            return ("Timeout", 0.0, "Analysis took too long", (time.time() - t0) * 1000)
+            
         data = parse_llm_json(raw)
         return (
             data.get("category", "Unknown"),
@@ -160,8 +166,14 @@ class RAGService:
         prompt = SUMMARIZE_PROMPT.format(complaint=text[:3000])
         
         loop = asyncio.get_event_loop()
-        raw = await loop.run_in_executor(None, self.llm.invoke, prompt)
-        
+        try:
+            raw = await asyncio.wait_for(
+                loop.run_in_executor(None, self.llm.invoke, prompt), 
+                timeout=60.0
+            )
+        except asyncio.TimeoutError:
+             return {"summary": "Analysis timed out.", "key_issues": [], "sentiment": "Unknown", "urgency_level": "Unknown"}, (time.time() - t0) * 1000
+             
         data = parse_llm_json(raw)
         return data, (time.time() - t0) * 1000
 
@@ -169,8 +181,14 @@ class RAGService:
         t0 = time.time()
         
         loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(None, self.qa_chain.invoke, {"query": query})
-        
+        try:
+            result = await asyncio.wait_for(
+                loop.run_in_executor(None, self.qa_chain.invoke, {"query": query}),
+                timeout=60.0
+            )
+        except asyncio.TimeoutError:
+            return "Analysis timed out.", [], (time.time() - t0) * 1000
+            
         answer = result.get("result", "I could not find relevant information.")
         sources = [
             doc.metadata.get("complaint_id", "N/A")

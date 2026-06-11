@@ -5,10 +5,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.fcis.app.viewmodel.ClassifyViewModel
+import com.fcis.app.viewmodel.SummarizeViewModel
 import com.fcis.app.ui.theme.Navy
 
 @Composable
-fun ComplaintsScreen() {
+fun ComplaintsScreen(
+    classifyVm: ClassifyViewModel = hiltViewModel(),
+    summarizeVm: SummarizeViewModel = hiltViewModel()
+) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("Classify", "Summarize")
 
@@ -28,8 +34,8 @@ fun ComplaintsScreen() {
         }
 
         when (selectedTabIndex) {
-            0 -> ClassifyScreen()
-            1 -> SummarizeScreen()
+            0 -> ClassifyScreen(vm = classifyVm)
+            1 -> SummarizeScreen(vm = summarizeVm)
         }
     }
 }

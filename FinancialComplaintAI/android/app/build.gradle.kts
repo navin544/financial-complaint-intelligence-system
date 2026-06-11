@@ -19,7 +19,10 @@ android {
         buildConfigField("String", "API_KEY", "System.getenv(\\"FCIS_API_KEY\\") ?: \\"MISSING_KEY\\"")
     }
     buildTypes {
-        release { isMinifyEnabled = false }
+        release { 
+            isMinifyEnabled = true 
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
