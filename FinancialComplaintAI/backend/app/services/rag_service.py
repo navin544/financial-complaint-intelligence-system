@@ -139,15 +139,17 @@ class RAGService:
 
     async def classify(self, text: str) -> Tuple[str, float, str, float]:
         t0 = time.time()
+        # Sanitize input: strip null bytes, limit length to prevent massive prompt injection attacks
+        sanitized_text = text.replace('\x00', '')[:2000]
+        
         prompt = CLASSIFY_PROMPT.format(
-            complaint=text[:2000],
+            complaint=sanitized_text,
             categories=", ".join(settings.category_list),
         )
         
-        loop = asyncio.get_event_loop()
         try:
             raw = await asyncio.wait_for(
-                loop.run_in_executor(None, self.llm.invoke, prompt), 
+                self.llm.ainvoke(prompt), 
                 timeout=60.0
             )
         except asyncio.TimeoutError:
@@ -163,12 +165,12 @@ class RAGService:
 
     async def summarize(self, text: str) -> Tuple[dict, float]:
         t0 = time.time()
-        prompt = SUMMARIZE_PROMPT.format(complaint=text[:3000])
+        sanitized_text = text.replace('\x00', '')[:3000]
+        prompt = SUMMARIZE_PROMPT.format(complaint=sanitized_text)
         
-        loop = asyncio.get_event_loop()
         try:
             raw = await asyncio.wait_for(
-                loop.run_in_executor(None, self.llm.invoke, prompt), 
+                self.llm.ainvoke(prompt), 
                 timeout=60.0
             )
         except asyncio.TimeoutError:
@@ -180,10 +182,19 @@ class RAGService:
     async def chat(self, query: str, history: list) -> Tuple[str, List[str], float]:
         t0 = time.time()
         
-        loop = asyncio.get_event_loop()
+        # Build history context
+        history_str = ""
+        # Handle dict or ChatMessage object
+        for msg in history[-5:]:
+            role = getattr(msg, 'role', msg.get('role', 'user') if isinstance(msg, dict) else 'user')
+            content = getattr(msg, 'content', msg.get('content', '') if isinstance(msg, dict) else str(msg))
+            history_str += f"{role}: {content}\n"
+            
+        enriched_query = f"Chat History:\n{history_str}\nUser Question: {query}" if history else query
+        
         try:
             result = await asyncio.wait_for(
-                loop.run_in_executor(None, self.qa_chain.invoke, {"query": query}),
+                self.qa_chain.ainvoke({"query": enriched_query}),
                 timeout=60.0
             )
         except asyncio.TimeoutError:

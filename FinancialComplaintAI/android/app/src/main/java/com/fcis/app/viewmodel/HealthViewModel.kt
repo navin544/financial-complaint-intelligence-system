@@ -22,20 +22,19 @@ class HealthViewModel @Inject constructor(
     private val repo: ComplaintRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HealthUiState())
-    val uiState: StateFlow<HealthUiState> = _uiState.asStateFlow()
-
-    init {
-        startPolling()
-    }
-
-    private fun startPolling() {
-        viewModelScope.launch {
-            while (isActive) {
-                checkHealth()
-                delay(30000) // Poll every 30 seconds
-            }
+    
+    val uiState: StateFlow<HealthUiState> = flow {
+        while (true) {
+            checkHealth()
+            delay(30000)
         }
     }
+    .combine(_uiState) { _, state -> state }
+    .stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = HealthUiState()
+    )
 
     fun checkHealth() {
         viewModelScope.launch {

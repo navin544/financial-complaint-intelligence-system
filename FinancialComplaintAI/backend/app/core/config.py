@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import Field, field_validator
 from typing import List
 
 class Settings(BaseSettings):
@@ -15,7 +16,14 @@ class Settings(BaseSettings):
         "Debt Collection,Credit Reporting,Money Transfer,"
         "Payday Loan,Vehicle Loan"
     )
-    api_key: str
+    api_key: str = Field(..., description="API_KEY must be set in .env")
+
+    @field_validator('api_key')
+    @classmethod
+    def check_api_key(cls, v):
+        if not v or v == "your_secure_api_key_here":
+            raise ValueError("Invalid or missing API_KEY. Please set a real API_KEY in the .env file.")
+        return v
 
     @property
     def category_list(self) -> List[str]:
