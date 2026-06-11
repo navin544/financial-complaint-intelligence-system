@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     def check_api_key(cls, v):
         if not v or v == "your_secure_api_key_here":
             raise ValueError("Invalid or missing API_KEY. Please set a real API_KEY in the .env file.")
+        if len(v) < 32:
+            raise ValueError("API_KEY must be at least 32 characters long for security.")
         return v
 
     @property

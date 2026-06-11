@@ -58,7 +58,15 @@ def generate(root):
             faiss_index_path: str = "data/faiss_index"
             complaints_csv: str = "data/complaints.csv"
             categories: str = "Credit Card,Mortgage,Student Loan,Bank Account,Debt Collection,Credit Reporting,Money Transfer,Payday Loan,Vehicle Loan"
-            api_key: str
+            api_key: str = Field(..., description="API_KEY must be set in .env")
+
+            @field_validator('api_key')
+            @classmethod
+            def check_api_key(cls, v):
+                if not v or v == "your_secure_api_key_here": raise ValueError("Invalid or missing API_KEY.")
+                if len(v) < 32: raise ValueError("API_KEY must be at least 32 characters long.")
+                return v
+
             @property
             def category_list(self) -> List[str]: return [c.strip() for c in self.categories.split(",")]
             class Config: env_file = ".env"
@@ -140,18 +148,29 @@ def generate(root):
             def doc_count(self) -> int: return self.vectorstore.index.ntotal if self.vectorstore else 0
             async def classify(self, text: str):
                 t0 = time.time(); loop = asyncio.get_event_loop()
-                try: raw = await asyncio.wait_for(loop.run_in_executor(None, self.llm.invoke, CLASSIFY_PROMPT.format(complaint=text[:2000], categories=", ".join(settings.category_list))), timeout=60.0)
+                sanitized_text = text.replace('\\x00', '')[:2000]
+                try: raw = await asyncio.wait_for(self.llm.ainvoke(CLASSIFY_PROMPT.format(complaint=sanitized_text, categories=", ".join(settings.category_list))), timeout=60.0)
                 except asyncio.TimeoutError: return ("Timeout", 0.0, "Analysis took too long", (time.time() - t0) * 1000)
                 data = parse_llm_json(raw)
                 return data.get("category", "Unknown"), float(data.get("confidence", 0.5)), data.get("reasoning", ""), (time.time()-t0)*1000
             async def summarize(self, text: str):
                 t0 = time.time(); loop = asyncio.get_event_loop()
-                try: raw = await asyncio.wait_for(loop.run_in_executor(None, self.llm.invoke, SUMMARIZE_PROMPT.format(complaint=text[:3000])), timeout=60.0)
+                sanitized_text = text.replace('\\x00', '')[:3000]
+                try: raw = await asyncio.wait_for(self.llm.ainvoke(SUMMARIZE_PROMPT.format(complaint=sanitized_text)), timeout=60.0)
                 except asyncio.TimeoutError: return parse_llm_json("{}"), (time.time()-t0)*1000
                 return parse_llm_json(raw), (time.time()-t0)*1000
             async def chat(self, query: str, history: list):
                 t0 = time.time(); loop = asyncio.get_event_loop()
-                try: result = await asyncio.wait_for(loop.run_in_executor(None, self.qa_chain.invoke, {"query": query}), timeout=60.0)
+                history_str = ""
+                for msg in history[-5:]:
+                    role = getattr(msg, 'role', msg.get('role', 'user') if isinstance(msg, dict) else 'user')
+                    if role not in ('user', 'assistant'): role = 'user'
+                    content = getattr(msg, 'content', msg.get('content', '') if isinstance(msg, dict) else str(msg))
+                    sanitized_content = content.replace('\\x00', '').replace('\\n', ' ')[:1000]
+                    history_str += f"[{role.upper()}]: {sanitized_content}\\n"
+                sanitized_query = query.replace('\\x00', '')[:1000]
+                enriched_query = f"=== CHAT HISTORY ===\\n{history_str}====================\\n\\nUser Question: {sanitized_query}" if history else sanitized_query
+                try: result = await asyncio.wait_for(self.qa_chain.ainvoke({"query": enriched_query}), timeout=60.0)
                 except asyncio.TimeoutError: return "Analysis timed out.", [], (time.time()-t0)*1000
                 return result.get("result", ""), [d.metadata.get("complaint_id", "N/A") for d in result.get("source_documents", [])], (time.time()-t0)*1000
         rag_service = RAGService()
@@ -191,6 +210,20 @@ def generate(root):
         def train_and_save_model():
             X, y = generate_synthetic_data()
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+            model = XGBClassifier(n_estimators=100, max_depth=4, learning_rate=0.1, scale_pos_weight=19, random_state=42)
+            model.fit(X_train, y_train)
+            os.makedirs("data", exist_ok=True)
+            joblib.dump(model, os.path.join("data", "fraud_model.pkl"))
+
+        if __name__ == "__main__": train_and_save_model()
+    ''')
+
+    # API Endpoints (Summarized for the script)
+    # (Implementation details same as previous manual edits)
+    print(f"\\n✅ Backend files written to {root}/")
+
+if __name__ == "__main__": generate(sys.argv[1] if len(sys.argv) > 1 else "backend")
+t = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
             model = XGBClassifier(n_estimators=100, max_depth=4, learning_rate=0.1, scale_pos_weight=19, random_state=42)
             model.fit(X_train, y_train)
             os.makedirs("data", exist_ok=True)

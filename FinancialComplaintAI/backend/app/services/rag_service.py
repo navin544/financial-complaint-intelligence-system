@@ -182,15 +182,18 @@ class RAGService:
     async def chat(self, query: str, history: list) -> Tuple[str, List[str], float]:
         t0 = time.time()
         
-        # Build history context
+        # Build history context with sanitization
         history_str = ""
-        # Handle dict or ChatMessage object
         for msg in history[-5:]:
             role = getattr(msg, 'role', msg.get('role', 'user') if isinstance(msg, dict) else 'user')
+            if role not in ('user', 'assistant'):
+                role = 'user'
             content = getattr(msg, 'content', msg.get('content', '') if isinstance(msg, dict) else str(msg))
-            history_str += f"{role}: {content}\n"
+            sanitized_content = content.replace('\x00', '').replace('\n', ' ')[:1000]
+            history_str += f"[{role.upper()}]: {sanitized_content}\n"
             
-        enriched_query = f"Chat History:\n{history_str}\nUser Question: {query}" if history else query
+        sanitized_query = query.replace('\x00', '')[:1000]
+        enriched_query = f"=== CHAT HISTORY ===\n{history_str}====================\n\nUser Question: {sanitized_query}" if history else sanitized_query
         
         try:
             result = await asyncio.wait_for(
