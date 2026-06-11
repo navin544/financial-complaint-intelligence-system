@@ -16,6 +16,9 @@ services:
       - ./backend/data:/app/data
     depends_on:
       - ollama
+    command: >
+      sh -c "python -m app.services.index_builder && 
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
 
   ollama:
     image: ollama/ollama:latest

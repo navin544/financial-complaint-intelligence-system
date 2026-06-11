@@ -16,7 +16,7 @@ android {
         versionName = "1.0.0"
 
         buildConfigField("String", "BASE_URL", "\\"http://10.0.2.2:8000/\\"")
-        buildConfigField("String", "API_KEY", "\\"dev-secret-key-12345\\"")
+        buildConfigField("String", "API_KEY", "System.getenv(\\"FCIS_API_KEY\\") ?: \\"MISSING_KEY\\"")
     }
     buildTypes {
         release { isMinifyEnabled = false }
@@ -57,4 +57,6 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
 }

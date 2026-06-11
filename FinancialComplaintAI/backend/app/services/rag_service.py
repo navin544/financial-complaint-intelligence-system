@@ -10,6 +10,7 @@ from langchain_community.llms import Ollama
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 from app.core.config import settings
+from app.core.logging import logger
 
 CLASSIFY_PROMPT = PromptTemplate(
     input_variables=["complaint", "categories"],
@@ -88,7 +89,7 @@ class RAGService:
         await loop.run_in_executor(None, self._load_sync)
 
     def _load_sync(self):
-        print("⏳  Loading embedding model...")
+        logger.info("⏳  Loading embedding model...")
         self.embeddings = HuggingFaceEmbeddings(
             model_name=settings.embedding_model,
             model_kwargs={"device": "cpu"},
@@ -96,15 +97,15 @@ class RAGService:
 
         index_path = settings.faiss_index_path
         if os.path.exists(index_path):
-            print("⏳  Loading FAISS index from disk...")
+            logger.info("⏳  Loading FAISS index from disk...")
             self.vectorstore = FAISS.load_local(
                 index_path, self.embeddings, allow_dangerous_deserialization=True
             )
         else:
-            print("⚠️   FAISS index not found — run index_builder.py first")
+            logger.warning("⚠️   FAISS index not found — run index_builder.py first")
             return
 
-        print("⏳  Connecting to Ollama (llama3)...")
+        logger.info("⏳  Connecting to Ollama (llama3)...")
         self.llm = Ollama(
             base_url=settings.ollama_base_url,
             model=settings.llm_model,
@@ -120,7 +121,7 @@ class RAGService:
             return_source_documents=True,
         )
         self._ready = True
-        print("✅  RAG service ready.")
+        logger.info("✅  RAG service ready.")
 
     @property
     def is_ready(self) -> bool:

@@ -17,36 +17,55 @@ import com.fcis.app.viewmodel.SummarizeViewModel
 
 @Composable
 fun SummarizeScreen(vm: SummarizeViewModel = hiltViewModel()) {
-    val state by vm.uiState.collectAsState()
-    var text by remember { mutableStateOf("") }
+        val state by vm.uiState.collectAsState()
+        var text by remember { mutableStateOf("") }
+        val maxLength = 4000
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        Text("Auto Summarization", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Navy)
-        Text("Extract key issues, sentiment and urgency level from any complaint.", fontSize = 13.sp, color = Color.Gray)
-
-        OutlinedTextField(
-            value = text, onValueChange = { text = it },
-            label = { Text("Enter complaint text") },
-            modifier = Modifier.fillMaxWidth().height(160.dp),
-            shape = RoundedCornerShape(12.dp), maxLines = 8,
-        )
-
-        Button(
-            onClick = { vm.summarize(text) },
-            enabled = text.trim().length > 20 && !state.isLoading,
-            modifier = Modifier.fillMaxWidth().height(50.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Teal),
+        Column(
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            if (state.isLoading) CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp, modifier = Modifier.size(20.dp))
-            else Text("Summarize Complaint", fontWeight = FontWeight.SemiBold)
-        }
+            Text("Auto Summarization", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Navy)
+            Text("Extract key issues, sentiment and urgency level from any complaint.", fontSize = 13.sp, color = Color.Gray)
+
+            Column {
+                OutlinedTextField(
+                    value = text, onValueChange = { if (it.length <= maxLength) text = it },
+                    label = { Text("Enter complaint text") },
+                    modifier = Modifier.fillMaxWidth().height(160.dp),
+                    shape = RoundedCornerShape(12.dp), maxLines = 8,
+                    supportingText = {
+                        Text("${text.length} / $maxLength", modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.End)
+                    },
+                    isError = text.length > maxLength
+                )
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = { vm.summarize(text) },
+                    enabled = text.trim().length in 20..maxLength && !state.isLoading,
+                    modifier = Modifier.weight(1f).height(50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Teal),
+                ) {
+                    if (state.isLoading) CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp, modifier = Modifier.size(20.dp))
+                    else Text("Summarize", fontWeight = FontWeight.SemiBold)
+                }
+                
+                if (state.isLoading) {
+                    OutlinedButton(
+                        onClick = { vm.reset() },
+                        modifier = Modifier.height(50.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            }
 
         state.error?.let {
             Card(colors = CardDefaults.cardColors(containerColor = Error.copy(0.1f))) {

@@ -15,6 +15,8 @@ coroutines = "1.8.1"
 ksp = "1.9.24-1.0.20"
 lottie = "6.4.0"
 room = "2.6.1"
+junit = "4.13.2"
+mockk = "1.13.11"
 
 [libraries]
 core-ktx            = { group="androidx.core",             name="core-ktx",                    version.ref="coreKtx"       }
@@ -40,6 +42,8 @@ lottie              = { group="com.airbnb.android",        name="lottie-compose"
 room-runtime        = { group="androidx.room",             name="room-runtime",                version.ref="room"          }
 room-compiler       = { group="androidx.room",             name="room-compiler",               version.ref="room"          }
 room-ktx            = { group="androidx.room",             name="room-ktx",                    version.ref="room"          }
+junit               = { group="junit",                     name="junit",                       version.ref="junit"         }
+mockk               = { group="io.mockk",                  name="mockk",                       version.ref="mockk"         }
 
 [plugins]
 android-application = { id="com.android.application",     version.ref="agp"    }

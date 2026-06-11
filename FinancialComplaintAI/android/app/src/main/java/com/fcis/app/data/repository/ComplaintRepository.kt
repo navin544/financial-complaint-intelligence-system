@@ -12,11 +12,39 @@ sealed class Result<out T> {
 }
 
 @Singleton
-class ComplaintRepository @Inject constructor(private val api: ApiService) {
+class ComplaintRepository @Inject constructor(
+    private val api: ApiService,
+    private val dao: com.fcis.app.data.local.ComplaintDao
+) {
+    val localComplaints = dao.getAllComplaints()
 
     suspend fun getHealth() = safeCall { api.health() }
-    suspend fun classify(text: String) = safeCall { api.classify(ComplaintRequest(text)) }
-    suspend fun summarize(text: String) = safeCall { api.summarize(ComplaintRequest(text)) }
+
+    suspend fun classify(text: String): Result<ClassificationResponse> {
+        val result = safeCall { api.classify(ComplaintRequest(text)) }
+        if (result is Result.Success) {
+            dao.insertComplaint(com.fcis.app.data.local.ComplaintEntity(
+                complaintId = result.data.complaint_id ?: "N/A",
+                text = text,
+                category = result.data.category
+            ))
+        }
+        return result
+    }
+
+    suspend fun summarize(text: String): Result<SummaryResponse> {
+        val result = safeCall { api.summarize(ComplaintRequest(text)) }
+        if (result is Result.Success) {
+            dao.insertComplaint(com.fcis.app.data.local.ComplaintEntity(
+                complaintId = result.data.complaint_id ?: "N/A",
+                text = text,
+                summary = result.data.summary,
+                sentiment = result.data.sentiment,
+                urgency = result.data.urgency_level
+            ))
+        }
+        return result
+    }
     suspend fun chat(query: String, history: List<ChatMessage>) =
         safeCall { api.chat(ChatRequest(query, history)) }
 
