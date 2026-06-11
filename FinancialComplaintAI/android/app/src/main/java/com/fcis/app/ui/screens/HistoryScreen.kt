@@ -46,7 +46,7 @@ fun HistoryScreen(vm: FraudViewModel = hiltViewModel()) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(sdf.format(Date(txn.timestamp)), fontSize = 11.sp, color = Color.Gray)
                                 Text(txn.riskLevel, fontSize = 11.sp, fontWeight = FontWeight.Bold, 
-                                     color = if (txn.isFraud) Error else Color(0xFF4CAF50))
+                                     color = if (txn.isFraud) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
                             }
                         }
                     }

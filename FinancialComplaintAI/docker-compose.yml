@@ -11,7 +11,7 @@ services:
       - OLLAMA_BASE_URL=http://ollama:11434
       - LLM_MODEL=llama3
       - EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
-      - API_KEY=dev-secret-key-12345
+      - API_KEY=${API_KEY}
     volumes:
       - ./backend/data:/app/data
     depends_on:

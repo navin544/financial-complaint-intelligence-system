@@ -17,8 +17,8 @@ import com.fcis.app.ui.theme.*
 import com.fcis.app.viewmodel.ClassifyViewModel
 
 @Composable
-fun ClassifyScreen(vm: ClassifyViewModel = hiltViewModel()) {
-        val state by vm.uiState.collectAsState()
+fun ClassifyScreen(vm: ClassifyViewModel) {
+    val state by vm.uiState.collectAsState()
         var text by remember { mutableStateOf("") }
         val maxLength = 4000
 

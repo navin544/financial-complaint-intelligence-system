@@ -18,12 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fcis.app.ui.theme.*
-import com.fcis.app.viewmodel.ClassifyViewModel
 import com.fcis.app.viewmodel.HealthViewModel
 
 @Composable
 fun HomeScreen(
-    classifyVm: ClassifyViewModel = hiltViewModel(),
     healthVm: HealthViewModel = hiltViewModel()
 ) {
     val healthState by healthVm.uiState.collectAsState()

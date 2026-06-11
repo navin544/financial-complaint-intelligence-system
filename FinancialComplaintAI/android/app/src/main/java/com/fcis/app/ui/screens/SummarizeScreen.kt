@@ -16,8 +16,8 @@ import com.fcis.app.ui.theme.*
 import com.fcis.app.viewmodel.SummarizeViewModel
 
 @Composable
-fun SummarizeScreen(vm: SummarizeViewModel = hiltViewModel()) {
-        val state by vm.uiState.collectAsState()
+fun SummarizeScreen(vm: SummarizeViewModel) {
+    val state by vm.uiState.collectAsState()
         var text by remember { mutableStateOf("") }
         val maxLength = 4000
 

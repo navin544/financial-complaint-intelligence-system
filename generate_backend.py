@@ -139,12 +139,20 @@ def generate(root):
             @property
             def doc_count(self) -> int: return self.vectorstore.index.ntotal if self.vectorstore else 0
             async def classify(self, text: str):
-                t0 = time.time(); loop = asyncio.get_event_loop(); raw = await loop.run_in_executor(None, self.llm.invoke, f"Classify: {text}"); data = parse_llm_json(raw)
+                t0 = time.time(); loop = asyncio.get_event_loop()
+                try: raw = await asyncio.wait_for(loop.run_in_executor(None, self.llm.invoke, CLASSIFY_PROMPT.format(complaint=text[:2000], categories=", ".join(settings.category_list))), timeout=60.0)
+                except asyncio.TimeoutError: return ("Timeout", 0.0, "Analysis took too long", (time.time() - t0) * 1000)
+                data = parse_llm_json(raw)
                 return data.get("category", "Unknown"), float(data.get("confidence", 0.5)), data.get("reasoning", ""), (time.time()-t0)*1000
             async def summarize(self, text: str):
-                t0 = time.time(); loop = asyncio.get_event_loop(); raw = await loop.run_in_executor(None, self.llm.invoke, f"Summarize: {text}"); return parse_llm_json(raw), (time.time()-t0)*1000
+                t0 = time.time(); loop = asyncio.get_event_loop()
+                try: raw = await asyncio.wait_for(loop.run_in_executor(None, self.llm.invoke, SUMMARIZE_PROMPT.format(complaint=text[:3000])), timeout=60.0)
+                except asyncio.TimeoutError: return parse_llm_json("{}"), (time.time()-t0)*1000
+                return parse_llm_json(raw), (time.time()-t0)*1000
             async def chat(self, query: str, history: list):
-                t0 = time.time(); loop = asyncio.get_event_loop(); result = await loop.run_in_executor(None, self.qa_chain.invoke, {"query": query})
+                t0 = time.time(); loop = asyncio.get_event_loop()
+                try: result = await asyncio.wait_for(loop.run_in_executor(None, self.qa_chain.invoke, {"query": query}), timeout=60.0)
+                except asyncio.TimeoutError: return "Analysis timed out.", [], (time.time()-t0)*1000
                 return result.get("result", ""), [d.metadata.get("complaint_id", "N/A") for d in result.get("source_documents", [])], (time.time()-t0)*1000
         rag_service = RAGService()
     ''')
