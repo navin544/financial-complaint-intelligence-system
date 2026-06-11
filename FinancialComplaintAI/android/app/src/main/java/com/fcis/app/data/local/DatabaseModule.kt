@@ -26,4 +26,9 @@ object DatabaseModule {
     fun provideComplaintDao(db: AppDatabase): ComplaintDao {
         return db.complaintDao()
     }
+
+    @Provides
+    fun provideTransactionDao(db: AppDatabase): TransactionDao {
+        return db.transactionDao()
+    }
 }

@@ -17,6 +17,7 @@ lottie = "6.4.0"
 room = "2.6.1"
 junit = "4.13.2"
 mockk = "1.13.11"
+mpandroidchart = "v3.1.0"
 
 [libraries]
 core-ktx            = { group="androidx.core",             name="core-ktx",                    version.ref="coreKtx"       }
@@ -44,6 +45,7 @@ room-compiler       = { group="androidx.room",             name="room-compiler",
 room-ktx            = { group="androidx.room",             name="room-ktx",                    version.ref="room"          }
 junit               = { group="junit",                     name="junit",                       version.ref="junit"         }
 mockk               = { group="io.mockk",                  name="mockk",                       version.ref="mockk"         }
+mpandroidchart      = { group="com.github.PhilJay",        name="MPAndroidChart",              version.ref="mpandroidchart"}
 
 [plugins]
 android-application = { id="com.android.application",     version.ref="agp"    }

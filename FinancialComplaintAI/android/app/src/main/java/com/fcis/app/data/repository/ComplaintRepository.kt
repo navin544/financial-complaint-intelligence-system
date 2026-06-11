@@ -2,28 +2,28 @@ package com.fcis.app.data.repository
 
 import com.fcis.app.data.model.*
 import com.fcis.app.data.network.ApiService
+import com.fcis.app.data.local.ComplaintDao
+import com.fcis.app.data.local.TransactionDao
+import com.fcis.app.data.local.TransactionEntity
 import javax.inject.Inject
 import javax.inject.Singleton
-
-sealed class Result<out T> {
-    data class Success<T>(val data: T) : Result<T>()
-    data class Error(val message: String) : Result<Nothing>()
-    object Loading : Result<Nothing>()
-}
+import kotlinx.coroutines.flow.Flow
 
 @Singleton
 class ComplaintRepository @Inject constructor(
     private val api: ApiService,
-    private val dao: com.fcis.app.data.local.ComplaintDao
+    private val complaintDao: ComplaintDao,
+    private val transactionDao: TransactionDao
 ) {
-    val localComplaints = dao.getAllComplaints()
+    val localComplaints = complaintDao.getAllComplaints()
+    val localTransactions = transactionDao.getAllTransactions()
 
     suspend fun getHealth() = safeCall { api.health() }
 
     suspend fun classify(text: String): Result<ClassificationResponse> {
         val result = safeCall { api.classify(ComplaintRequest(text)) }
         if (result is Result.Success) {
-            dao.insertComplaint(com.fcis.app.data.local.ComplaintEntity(
+            complaintDao.insertComplaint(com.fcis.app.data.local.ComplaintEntity(
                 complaintId = result.data.complaint_id ?: "N/A",
                 text = text,
                 category = result.data.category
@@ -35,7 +35,7 @@ class ComplaintRepository @Inject constructor(
     suspend fun summarize(text: String): Result<SummaryResponse> {
         val result = safeCall { api.summarize(ComplaintRequest(text)) }
         if (result is Result.Success) {
-            dao.insertComplaint(com.fcis.app.data.local.ComplaintEntity(
+            complaintDao.insertComplaint(com.fcis.app.data.local.ComplaintEntity(
                 complaintId = result.data.complaint_id ?: "N/A",
                 text = text,
                 summary = result.data.summary,
@@ -45,8 +45,29 @@ class ComplaintRepository @Inject constructor(
         }
         return result
     }
+
     suspend fun chat(query: String, history: List<ChatMessage>) =
         safeCall { api.chat(ChatRequest(query, history)) }
+
+    suspend fun predictFraud(req: TransactionRequest): Result<FraudResponse> {
+        val result = safeCall { api.predictFraud(req) }
+        if (result is Result.Success) {
+            transactionDao.insertTransaction(TransactionEntity(
+                id = result.data.transaction_id,
+                senderId = req.sender_id,
+                receiverId = req.receiver_id,
+                amount = req.amount,
+                riskLevel = result.data.risk_level,
+                fraudProbability = result.data.fraud_probability,
+                isFraud = result.data.is_fraud,
+                riskFactors = result.data.top_risk_factors.joinToString(", ")
+            ))
+        }
+        return result
+    }
+
+    suspend fun predictFraudWithContext(req: TransactionRequest) = 
+        safeCall { api.predictFraudWithContext(req) }
 
     private suspend fun <T> safeCall(block: suspend () -> retrofit2.Response<T>): Result<T> {
         return try {

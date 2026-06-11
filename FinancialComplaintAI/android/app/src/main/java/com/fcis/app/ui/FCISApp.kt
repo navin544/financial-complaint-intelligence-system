@@ -13,13 +13,14 @@ import androidx.navigation.compose.*
 import com.fcis.app.ui.screens.*
 
 sealed class Screen(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    object Home     : Screen("home",      "Home",     Icons.Filled.Home)
-    object Classify : Screen("classify",  "Classify", Icons.Filled.Category)
-    object Summarize: Screen("summarize", "Summarize",Icons.Filled.Summarize)
+    object Home     : Screen("home",      "Home",     Icons.Filled.Dashboard)
+    object Fraud    : Screen("fraud",     "Fraud",    Icons.Filled.Security)
+    object History  : Screen("history",   "History",  Icons.Filled.History)
+    object Complaints: Screen("complaints", "Complaints", Icons.Filled.Message)
     object Chat     : Screen("chat",      "Chat",     Icons.Filled.Chat)
 }
 
-val bottomNavItems = listOf(Screen.Home, Screen.Classify, Screen.Summarize, Screen.Chat)
+val bottomNavItems = listOf(Screen.Home, Screen.Fraud, Screen.History, Screen.Complaints, Screen.Chat)
 
 @Composable
 fun FCISApp() {
@@ -37,7 +38,7 @@ fun FCISApp() {
                         selected = current?.hierarchy?.any { it.route == screen.route } == true,
                         onClick = {
                             navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                popTo(navController.graph.findStartDestination().id) { saveState = true }
                                 launchSingleTop = true
                                 restoreState = true
                             }
@@ -48,10 +49,11 @@ fun FCISApp() {
         }
     ) { padding ->
         NavHost(navController, startDestination = Screen.Home.route, Modifier.padding(padding)) {
-            composable(Screen.Home.route)      { HomeScreen() }
-            composable(Screen.Classify.route)  { ClassifyScreen() }
-            composable(Screen.Summarize.route) { SummarizeScreen() }
-            composable(Screen.Chat.route)      { ChatScreen() }
+            composable(Screen.Home.route)       { HomeScreen() }
+            composable(Screen.Fraud.route)      { FraudDetectionScreen() }
+            composable(Screen.History.route)    { HistoryScreen() }
+            composable(Screen.Complaints.route) { ClassifyScreen() } // Reusing Classify for now
+            composable(Screen.Chat.route)       { ChatScreen() }
         }
     }
 }
