@@ -15,12 +15,18 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    // ⚠️  Change this to your server's IP when running on a real device
-    private const val BASE_URL = "http://10.0.2.2:8000/"   // emulator → localhost
+    private const val BASE_URL = com.fcis.app.BuildConfig.BASE_URL
+    private const val API_KEY = com.fcis.app.BuildConfig.API_KEY
 
     @Provides @Singleton
     fun provideOkHttpClient(): OkHttpClient =
         OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val request = chain.request().newBuilder()
+                    .addHeader("X-API-Key", API_KEY)
+                    .build()
+                chain.proceed(request)
+            }
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })

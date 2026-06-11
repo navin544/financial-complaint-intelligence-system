@@ -15,6 +15,7 @@ class Settings(BaseSettings):
         "Debt Collection,Credit Reporting,Money Transfer,"
         "Payday Loan,Vehicle Loan"
     )
+    api_key: str = "dev-secret-key-12345"
 
     @property
     def category_list(self) -> List[str]:

@@ -8,6 +8,7 @@ venv/
 # Backend specific
 FinancialComplaintAI/backend/data/faiss_index/
 FinancialComplaintAI/backend/data/complaints.csv
+FinancialComplaintAI/backend/data/*.db
 
 # Android specific
 .gradle/

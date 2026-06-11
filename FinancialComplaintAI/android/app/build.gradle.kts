@@ -14,6 +14,9 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
+
+        buildConfigField("String", "BASE_URL", "\\"http://10.0.2.2:8000/\\"")
+        buildConfigField("String", "API_KEY", "\\"dev-secret-key-12345\\"")
     }
     buildTypes {
         release { isMinifyEnabled = false }
@@ -23,7 +26,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
-    buildFeatures { compose = true }
+    buildFeatures { 
+        compose = true 
+        buildConfig = true
+    }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
 }
 
@@ -48,4 +54,7 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.coroutines)
     implementation(libs.lottie)
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
 }

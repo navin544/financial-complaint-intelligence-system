@@ -2,16 +2,28 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import classify, summarize, chat, health
 from app.core.config import settings
+from app.db.database import engine, Base
+from app.core.limiter import limiter
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Financial Complaint Intelligence API",
     description="RAG-powered complaint classification, summarization and chat",
     version="1.0.0",
 )
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://10.0.2.2", # Android emulator
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )

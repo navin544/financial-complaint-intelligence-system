@@ -19,9 +19,15 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fcis.app.ui.theme.*
 import com.fcis.app.viewmodel.ClassifyViewModel
+import com.fcis.app.viewmodel.HealthViewModel
 
 @Composable
-fun HomeScreen(vm: ClassifyViewModel = hiltViewModel()) {
+fun HomeScreen(
+    classifyVm: ClassifyViewModel = hiltViewModel(),
+    healthVm: HealthViewModel = hiltViewModel()
+) {
+    val healthState by healthVm.uiState.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -38,7 +44,27 @@ fun HomeScreen(vm: ClassifyViewModel = hiltViewModel()) {
                 .padding(24.dp)
         ) {
             Column {
-                Text("FCIS", color = Gold, fontWeight = FontWeight.Black, fontSize = 12.sp, letterSpacing = 3.sp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("FCIS", color = Gold, fontWeight = FontWeight.Black, fontSize = 12.sp, letterSpacing = 3.sp)
+                    
+                    // Health Status Badge
+                    Surface(
+                        color = if (healthState.isOnline) Color(0xFF4CAF50) else Color(0xFFF44336),
+                        shape = RoundedCornerShape(12.dp),
+                    ) {
+                        Text(
+                            text = if (healthState.isOnline) "ONLINE" else "OFFLINE",
+                            color = Color.White,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                        )
+                    }
+                }
                 Spacer(Modifier.height(4.dp))
                 Text("Financial Complaint\nIntelligence System", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))

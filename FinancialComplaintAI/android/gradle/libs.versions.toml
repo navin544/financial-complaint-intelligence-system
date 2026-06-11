@@ -14,6 +14,7 @@ gson = "2.11.0"
 coroutines = "1.8.1"
 ksp = "1.9.24-1.0.20"
 lottie = "6.4.0"
+room = "2.6.1"
 
 [libraries]
 core-ktx            = { group="androidx.core",             name="core-ktx",                    version.ref="coreKtx"       }
@@ -36,6 +37,9 @@ okhttp-logging      = { group="com.squareup.okhttp3",      name="logging-interce
 gson                = { group="com.google.code.gson",      name="gson",                        version.ref="gson"          }
 coroutines          = { group="org.jetbrains.kotlinx",     name="kotlinx-coroutines-android",  version.ref="coroutines"    }
 lottie              = { group="com.airbnb.android",        name="lottie-compose",              version.ref="lottie"        }
+room-runtime        = { group="androidx.room",             name="room-runtime",                version.ref="room"          }
+room-compiler       = { group="androidx.room",             name="room-compiler",               version.ref="room"          }
+room-ktx            = { group="androidx.room",             name="room-ktx",                    version.ref="room"          }
 
 [plugins]
 android-application = { id="com.android.application",     version.ref="agp"    }

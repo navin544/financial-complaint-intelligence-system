@@ -2,7 +2,7 @@
 Core RAG service: loads FAISS index, runs LLM via Ollama/LangChain.
 Handles classification, summarization, and chat.
 """
-import time, os, asyncio
+import time, os, asyncio, json, re
 from typing import List, Tuple
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -62,6 +62,18 @@ Provide a clear, helpful answer based on the complaint data.
 """
 )
 
+def parse_llm_json(raw: str) -> dict:
+    """Robustly parse JSON from LLM output, handling markdown fences."""
+    # Strip markdown code fences if present
+    clean = re.sub(r"```(?:json)?|```", "", raw).strip()
+    # Find the first { and last }
+    m = re.search(r"\{.*\}", clean, re.DOTALL)
+    if m:
+        try:
+            return json.loads(m.group())
+        except json.JSONDecodeError:
+            pass
+    return {}
 
 class RAGService:
     def __init__(self):
@@ -120,19 +132,17 @@ class RAGService:
             return self.vectorstore.index.ntotal
         return 0
 
-    def classify(self, text: str) -> Tuple[str, float, str, float]:
+    async def classify(self, text: str) -> Tuple[str, float, str, float]:
         t0 = time.time()
         prompt = CLASSIFY_PROMPT.format(
             complaint=text[:2000],
             categories=", ".join(settings.category_list),
         )
-        raw = self.llm(prompt)
-        import json, re
-        try:
-            m = re.search(r"\{.*\}", raw, re.DOTALL)
-            data = json.loads(m.group()) if m else {}
-        except Exception:
-            data = {}
+        
+        loop = asyncio.get_event_loop()
+        raw = await loop.run_in_executor(None, self.llm.invoke, prompt)
+        
+        data = parse_llm_json(raw)
         return (
             data.get("category", "Unknown"),
             float(data.get("confidence", 0.5)),
@@ -140,21 +150,22 @@ class RAGService:
             (time.time() - t0) * 1000,
         )
 
-    def summarize(self, text: str) -> Tuple[dict, float]:
+    async def summarize(self, text: str) -> Tuple[dict, float]:
         t0 = time.time()
         prompt = SUMMARIZE_PROMPT.format(complaint=text[:3000])
-        raw = self.llm(prompt)
-        import json, re
-        try:
-            m = re.search(r"\{.*\}", raw, re.DOTALL)
-            data = json.loads(m.group()) if m else {}
-        except Exception:
-            data = {}
+        
+        loop = asyncio.get_event_loop()
+        raw = await loop.run_in_executor(None, self.llm.invoke, prompt)
+        
+        data = parse_llm_json(raw)
         return data, (time.time() - t0) * 1000
 
-    def chat(self, query: str, history: list) -> Tuple[str, List[str], float]:
+    async def chat(self, query: str, history: list) -> Tuple[str, List[str], float]:
         t0 = time.time()
-        result = self.qa_chain({"query": query})
+        
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(None, self.qa_chain.invoke, {"query": query})
+        
         answer = result.get("result", "I could not find relevant information.")
         sources = [
             doc.metadata.get("complaint_id", "N/A")

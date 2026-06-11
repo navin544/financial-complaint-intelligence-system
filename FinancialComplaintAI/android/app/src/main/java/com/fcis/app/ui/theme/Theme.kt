@@ -22,7 +22,22 @@ private val LightColors = lightColorScheme(
     error           = Error,
 )
 
+private val DarkColors = darkColorScheme(
+    primary         = Color(0xFF90CAF9),
+    onPrimary       = Color(0xFF0D47A1),
+    secondary       = Color(0xFF80CBC4),
+    onSecondary     = Color(0xFF004D40),
+    tertiary        = Gold,
+    background      = Color(0xFF121212),
+    surface         = Color(0xFF1E1E1E),
+    error           = Color(0xFFCF6679),
+)
+
 @Composable
-fun FCISTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = LightColors, content = content)
+fun FCISTheme(
+    darkTheme: Boolean = androidx.compose.foundation.isSystemInDarkTheme(),
+    content: @Composable () -> Unit
+) {
+    val colors = if (darkTheme) DarkColors else LightColors
+    MaterialTheme(colorScheme = colors, content = content)
 }
