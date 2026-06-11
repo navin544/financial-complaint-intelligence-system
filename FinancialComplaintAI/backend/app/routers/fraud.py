@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 from app.models.fraud_model import FraudEnsemble, get_risk_level, get_recommendation
+from app.models.feature_engineering import engineer_features
 from app.core.deps import get_fraud_model, get_rag_service
 from app.core.auth import verify_api_key
 from app.core.limiter import limiter
@@ -10,6 +11,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 import uuid
 import json
+from typing import List
 
 router = APIRouter()
 
@@ -50,8 +52,8 @@ async def predict(
     model: FraudEnsemble = Depends(get_fraud_model),
     db: Session = Depends(get_db)
 ):
-    # Simulated feature engineering
-    features = [txn.amount, txn.is_new_beneficiary, txn.device_changed, txn.location_anomaly]
+    # Use robust feature engineering
+    features = engineer_features(txn.model_dump())
     
     prob = model.predict_proba(features)
     risk_level = get_risk_level(prob)
@@ -84,6 +86,25 @@ async def predict(
         timestamp=datetime.utcnow().isoformat(),
         top_risk_factors=factors
     )
+
+@router.post("/batch_predict", response_model=List[FraudResponse])
+@limiter.limit("5/minute")
+async def batch_predict(
+    txns: List[TransactionRequest],
+    request: Request,
+    api_key: str = Depends(verify_api_key),
+    model: FraudEnsemble = Depends(get_fraud_model),
+    db: Session = Depends(get_db)
+):
+    # Bug fix: Add batch size limit
+    if len(txns) > 100:
+        raise HTTPException(status_code=400, detail="Batch size exceeds maximum of 100")
+    
+    results = []
+    for txn in txns:
+        res = await predict(txn, request, api_key, model, db)
+        results.append(res)
+    return results
 
 @router.post("/predict-with-context", response_model=FraudResponseWithContext)
 @limiter.limit("20/minute")

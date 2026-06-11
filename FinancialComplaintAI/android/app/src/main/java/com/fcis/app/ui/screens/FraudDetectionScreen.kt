@@ -21,6 +21,7 @@ fun FraudDetectionScreen(vm: FraudViewModel = hiltViewModel()) {
     var amount by remember { mutableStateOf("") }
     var sender by remember { mutableStateOf("") }
     var receiver by remember { mutableStateOf("") }
+    var amountError by remember { mutableStateOf<String?>(null) }
 
     Column(
         Modifier
@@ -33,9 +34,16 @@ fun FraudDetectionScreen(vm: FraudViewModel = hiltViewModel()) {
         Text("Analyze UPI transactions for potential fraud patterns in real-time.", fontSize = 13.sp, color = Color.Gray)
 
         OutlinedTextField(
-            value = amount, onValueChange = { amount = it },
+            value = amount, 
+            onValueChange = { 
+                amount = it
+                amountError = if (it.isNotEmpty() && it.toDoubleOrNull() == null) "Enter a valid number" else null
+            },
             label = { Text("Transaction Amount (₹)") },
-            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)
+            modifier = Modifier.fillMaxWidth(), 
+            shape = RoundedCornerShape(12.dp),
+            isError = amountError != null,
+            supportingText = { amountError?.let { Text(it) } }
         )
         OutlinedTextField(
             value = sender, onValueChange = { sender = it },
@@ -49,8 +57,15 @@ fun FraudDetectionScreen(vm: FraudViewModel = hiltViewModel()) {
         )
 
         Button(
-            onClick = { vm.analyzeTransaction(amount.toDoubleOrNull() ?: 0.0, sender, receiver) },
-            enabled = amount.isNotEmpty() && sender.length >= 3 && !state.isLoading,
+            onClick = { 
+                val parsedAmount = amount.toDoubleOrNull()
+                if (parsedAmount != null) {
+                    vm.analyzeTransaction(parsedAmount, sender, receiver)
+                } else {
+                    amountError = "Enter a valid number"
+                }
+            },
+            enabled = amount.isNotEmpty() && amountError == null && sender.length >= 3 && !state.isLoading,
             modifier = Modifier.fillMaxWidth().height(50.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Blue),
