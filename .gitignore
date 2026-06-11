@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Backend specific
+FinancialComplaintAI/backend/data/faiss_index/
+FinancialComplaintAI/backend/data/complaints.csv
+
+# Android specific
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+.DS_Store
+capture/
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
