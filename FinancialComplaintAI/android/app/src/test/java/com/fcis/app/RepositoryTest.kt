@@ -2,6 +2,7 @@ package com.fcis.app
 
 import com.fcis.app.data.network.ApiService
 import com.fcis.app.data.local.ComplaintDao
+import com.fcis.app.data.local.TransactionDao
 import com.fcis.app.data.repository.ComplaintRepository
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
@@ -12,8 +13,9 @@ import retrofit2.Response
 
 class RepositoryTest {
     private val api = mockk<ApiService>()
-    private val dao = mockk<ComplaintDao>()
-    private val repo = ComplaintRepository(api, dao)
+    private val complaintDao = mockk<ComplaintDao>()
+    private val transactionDao = mockk<TransactionDao>()
+    private val repo = ComplaintRepository(api, complaintDao, transactionDao)
 
     @Test
     fun testHealthSuccess() = runBlocking {

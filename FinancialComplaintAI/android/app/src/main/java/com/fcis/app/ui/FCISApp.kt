@@ -52,7 +52,7 @@ fun FCISApp() {
             composable(Screen.Home.route)       { HomeScreen() }
             composable(Screen.Fraud.route)      { FraudDetectionScreen() }
             composable(Screen.History.route)    { HistoryScreen() }
-            composable(Screen.Complaints.route) { ClassifyScreen() } // Reusing Classify for now
+            composable(Screen.Complaints.route) { ComplaintsScreen() }
             composable(Screen.Chat.route)       { ChatScreen() }
         }
     }
