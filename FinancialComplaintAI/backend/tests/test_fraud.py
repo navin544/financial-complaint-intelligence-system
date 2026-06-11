@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 
 client = TestClient(app)
-API_KEY = "dev-secret-key-12345"
+API_KEY = "test_api_key_12345678901234567890"
 HEADERS = {"X-API-Key": API_KEY}
 
 def test_predict_fraud_success():

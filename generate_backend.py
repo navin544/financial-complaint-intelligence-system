@@ -223,17 +223,3 @@ def generate(root):
     print(f"\\n✅ Backend files written to {root}/")
 
 if __name__ == "__main__": generate(sys.argv[1] if len(sys.argv) > 1 else "backend")
-t = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
-            model = XGBClassifier(n_estimators=100, max_depth=4, learning_rate=0.1, scale_pos_weight=19, random_state=42)
-            model.fit(X_train, y_train)
-            os.makedirs("data", exist_ok=True)
-            joblib.dump(model, os.path.join("data", "fraud_model.pkl"))
-
-        if __name__ == "__main__": train_and_save_model()
-    ''')
-
-    # API Endpoints (Summarized for the script)
-    # (Implementation details same as previous manual edits)
-    print(f"\\n✅ Backend files written to {root}/")
-
-if __name__ == "__main__": generate(sys.argv[1] if len(sys.argv) > 1 else "backend")
